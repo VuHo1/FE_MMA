@@ -20,6 +20,33 @@ const CartScreen = ({ navigation }) => {
         }
     };
 
+    const handleCheckout = async () => {
+        try {
+            if (totalPrice === 0) {
+                Alert.alert("Thông báo", "Bạn cần thêm sản phẩm vào giỏ hàng trước khi thanh toán.");
+                return;
+            }
+    
+            const userToken = await AsyncStorage.getItem('access_token'); 
+            if (!userToken) {
+                Alert.alert("Thông báo", "Bạn cần đăng nhập trước khi thanh toán.", [
+                    { text: "Đăng nhập", onPress: () => navigation.navigate("Login") },
+                    { text: "Hủy", style: "cancel" }
+                ]);
+                return;
+            }
+    
+            const userInfo = await AsyncStorage.getItem('userInfo'); 
+            if (!userInfo) {
+                navigation.navigate("UserInfo"); 
+            } else {
+                navigation.navigate("Payment"); 
+            }
+        } catch (error) {
+            console.error("Lỗi khi kiểm tra thông tin người dùng:", error);
+        }
+    };
+
     const updateQuantity = async (id, amount) => {
         const updatedCart = cart.map(item =>
             item._id === id ? { ...item, quantity: Math.max(1, item.quantity + amount) } : item
@@ -67,7 +94,7 @@ const CartScreen = ({ navigation }) => {
                 )}
             />
             <Text style={styles.total}>Tổng tiền: {totalPrice.toLocaleString()}đ</Text>
-            <Button title="Thanh toán" onPress={() => navigation.navigate('Checkout')} />
+            <Button title="Thanh toán" onPress={handleCheckout} />
         </View>
     );
 };

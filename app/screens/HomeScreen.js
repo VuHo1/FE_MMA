@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useEffect } from "react";
+import { View, Text, FlatList, Image, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator, Platform, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
 
-const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000/api/v1/products' : 'http://localhost:8000/api/v1/products';
+const API_URL = Platform.OS === "android" ? "http://192.168.56.1:8000/api/v1/products" : "http://localhost:8000/api/v1/products";
 
 const HomeScreen = ({ navigation }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedGender, setSelectedGender] = useState('Tất cả');
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [userToken, setUserToken] = useState(null);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -18,17 +20,33 @@ const HomeScreen = ({ navigation }) => {
                 if (response.ok && result.data) {
                     setProducts(result.data);
                 } else {
-                    console.error('Error fetching products:', result.message);
+                    console.error("Error fetching products:", result.message);
                 }
             } catch (error) {
-                console.error('Network error:', error);
+                console.error("Network error:", error);
             } finally {
                 setLoading(false);
             }
         };
+
+
+        const checkLoginStatus = async () => {
+            const token = await AsyncStorage.getItem("access_token");
+            setUserToken(token);
+        };
+
         fetchProducts();
+        checkLoginStatus();
     }, []);
 
+    const handleLogout = async () => {
+        await AsyncStorage.removeItem("access_token");
+        await AsyncStorage.removeItem("user_name");
+        await AsyncStorage.removeItem("user_data"); 
+        setUserToken(null);
+        Alert.alert("Đăng xuất", "Bạn đã đăng xuất thành công!");
+    };
+    
     const filteredProducts = products.filter(product =>
         (selectedGender === 'Tất cả' || product.gender === selectedGender) &&
         product.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -39,9 +57,19 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.header}>
                 <Text style={styles.title}>Shop Mỹ Phẩm</Text>
                 <View style={styles.headerIcons}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
                         <Ionicons name="cart-outline" size={28} color="black" />
                     </TouchableOpacity>
+
+                    {userToken ? (
+                        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                            <Text style={styles.loginText}>Logout</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("Login")}>
+                            <Text style={styles.loginText}>Login</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
 
@@ -75,7 +103,7 @@ const HomeScreen = ({ navigation }) => {
                     keyExtractor={(item) => item._id}
                     numColumns={2}
                     renderItem={({ item }) => (
-                        <TouchableOpacity style={styles.productCard} onPress={() => navigation.navigate('ProductDetail', { product: item })}>
+                        <TouchableOpacity style={styles.productCard} onPress={() => navigation.navigate("ProductDetail", { product: item })}>
                             <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
                             <Text style={styles.productName}>{item.name}</Text>
                             <Text style={styles.productPrice}>{item.price.toLocaleString()}đ</Text>
@@ -101,7 +129,9 @@ const styles = StyleSheet.create({
     productCard: { flex: 1, backgroundColor: '#fff', padding: 10, borderRadius: 10, alignItems: 'center', margin: 5, elevation: 3 },
     productImage: { width: 100, height: 100, borderRadius: 10 },
     productName: { fontSize: 14, fontWeight: 'bold', marginTop: 5 },
-    productPrice: { fontSize: 14, color: '#ff6347', marginTop: 3 }
+    productPrice: { fontSize: 14, color: '#ff6347', marginTop: 3 },
+    logoutButton: { paddingVertical: 5, paddingHorizontal: 10, backgroundColor: "#dc3545", borderRadius: 8 },
+    loginButton: { paddingVertical: 5, paddingHorizontal: 10, backgroundColor: "#f4511e", borderRadius: 8 },
 });
 
 export default HomeScreen;
