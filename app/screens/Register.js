@@ -1,35 +1,42 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native"; // Import navigation
+import { useNavigation } from "@react-navigation/native";
 
-export default function Login() {
+export default function Register() {
+    const [name, setName] = useState(""); // Thêm state cho name
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const navigation = useNavigation(); // Nhận navigation
+    const navigation = useNavigation();
 
-    const handleLogin = async () => {
-        if (!email || !password) {
+    const handleRegister = async () => {
+        if (!name || !email || !password || !confirmPassword) {
             Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Alert.alert("Lỗi", "Mật khẩu xác nhận không khớp.");
             return;
         }
 
         setLoading(true);
         try {
-            const response = await fetch("http://192.168.56.1:8000/api/v1/auth/login", {
+            const response = await fetch("http://192.168.56.1:8000/api/v1/auth/signup", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ name, email, password }), // Gửi thêm name
             });
 
             const data = await response.json();
             if (response.ok) {
-                Alert.alert("Thành công", "Đăng nhập thành công!");
-                navigation.replace("Home"); // Điều hướng sang HomeScreen
+                Alert.alert("Thành công", "Đăng ký thành công! Vui lòng đăng nhập.");
+                navigation.replace("Login"); // Chuyển về màn hình đăng nhập
             } else {
-                Alert.alert("Lỗi", data.message || "Đăng nhập thất bại.");
+                Alert.alert("Lỗi", data.message || "Đăng ký thất bại.");
             }
         } catch (error) {
             Alert.alert("Lỗi", "Không thể kết nối đến máy chủ.");
@@ -39,7 +46,13 @@ export default function Login() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Đăng nhập</Text>
+            <Text style={styles.title}>Đăng ký</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Tên"
+                value={name}
+                onChangeText={setName} // Nhập tên người dùng
+            />
             <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -54,14 +67,19 @@ export default function Login() {
                 value={password}
                 onChangeText={setPassword}
             />
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
-                    <Text style={styles.buttonText}>{loading ? "Đang xử lý..." : "Đăng nhập"}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate("Register")}>
-                    <Text style={styles.buttonText}>Đăng ký</Text>
-                </TouchableOpacity>
-            </View>
+            <TextInput
+                style={styles.input}
+                placeholder="Xác nhận mật khẩu"
+                secureTextEntry
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+            />
+            <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+                <Text style={styles.buttonText}>{loading ? "Đang xử lý..." : "Đăng ký"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.replace("Login")}>
+                <Text style={styles.linkText}>Đã có tài khoản? Đăng nhập</Text>
+            </TouchableOpacity>
         </View>
     );
 }
@@ -89,32 +107,21 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#ddd",
     },
-    buttonContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
+    button: {
         width: "100%",
-    },
-    loginButton: {
-        flex: 1,
-        height: 50,
-        backgroundColor: "#007bff",
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: 8,
-        marginRight: 5,
-    },
-    registerButton: {
-        flex: 1,
         height: 50,
         backgroundColor: "#28a745",
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 8,
-        marginLeft: 5,
     },
     buttonText: {
         color: "#fff",
         fontSize: 16,
         fontWeight: "bold",
+    },
+    linkText: {
+        marginTop: 10,
+        color: "#007bff",
     },
 });

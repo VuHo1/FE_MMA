@@ -12,6 +12,7 @@ import CartScreen from '../screens/CartScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import Login from '../screens/Login';
+import Register from '../screens/Register';
 // Tạo Stack cho từng nhóm màn hình
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ const MainStack = () => {
             <Stack.Screen name="Routine" component={RoutineScreen} options={{ title: 'Lộ trình chăm sóc da' }} />
             <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: 'Chi tiết sản phẩm' }} />
             <Stack.Screen name="Cart" component={CartScreen} options={{ title: 'Giỏ hàng' }} />
+            <Stack.Screen name="Register" component={Register} options={{ title: 'Đăng Ký' }}/> 
             <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Thanh toán' }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Hồ sơ cá nhân' }} />
             <Stack.Screen name="Login" component={Login} options={{ title: 'Đăng Nhập' }} />
